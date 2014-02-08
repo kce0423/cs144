@@ -9,24 +9,24 @@ import sys
 graph = {}
 
 for line in sys.stdin:
-    key_part, value_part = line.split('\t')
+    key_part, value_part = line.strip().split('\t')
     
     if key_part == '#':
         sys.stdout.write(line)
     else:
-        node_i = int(key_part)        
+        node_i = key_part
         value_list = value_part.split(',')
-        node_j = int(value_list[0])
+        node_j = value_list[0]
         rank = float(value_list[1])
         if graph.get(node_i) is None:
             graph[node_i] = {'rank': 0, 'neighbors': []}
         graph[node_i]['rank'] += rank
         graph[node_i]['neighbors'].append(node_j)
 
-for key, value in graph.iteritems():
-    outline = '%d\t%f' % (key, value['rank'])
+for node_i, value in graph.iteritems():
+    outline = '%s\t%f' % (node_i, value['rank'])
     sys.stdout.write(outline)
-    for j in value['neighbors']:
-        sys.stdout.write(',%d' % j)
+    for node_j in value['neighbors']:
+        sys.stdout.write(',%s' % node_j)
     sys.stdout.write('\n')
 

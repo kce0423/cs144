@@ -2,7 +2,7 @@
 
 cp input.txt input1.txt
 ((j = 0))
-for i in {1..50}
+for i in {1..25}
 do
     echo "Iteration $i..."
     ((j = i + 1))

@@ -6,46 +6,58 @@ import sys
 # This program simply represents the identity function.
 #
 
-iteration_limit = 50
+alpha = 0.85
+iteration_limit = 25
 iter_no = 0
-info = {}
+n = 0 # number of nodes
+graph = {} 
+rank_sum = 0
 
 for line in sys.stdin:
-    key_part, value_part = line.split('\t')
-
+    key_part, value_part = line.strip().split('\t')
+    value_list = value_part.split(',')
+        
     if key_part == '#':
-        value_list = value_part.split(',')
-        iter_no = int(value_list[0])
-        node_i = int(value_list[1])
-        new_rank = float(value_list[2])
-        old_rank = float(value_list[3])        
-        if info.get(node_i) is None:
-            info[node_i] = {'old': 0, 'new': 0, 'neighbors': []}
-        info[node_i]['old'] = old_rank
-        info[node_i]['new'] = new_rank        
+        node_i = value_list[0]
+        r = float(value_list[1])
+        iter_no = int(value_list[2])
+        if graph.get(node_i) is None:
+            graph[node_i] = {'old': 0, 'new': 0, 'neighbors': []}
+        graph[node_i]['old'] = r
+        rank_sum += r
+        n += 1
     else:
-        node_i = int(key_part)
-        node_j = int(value_part)
-        if info.get(node_i) is None:
-            info[node_i] = {'old': 0, 'new': 0, 'neighbors': []}
-        info[node_i]['neighbors'].append(node_j)
+        node_i = key_part
+        new_rank = float(value_list[0])
+        if graph.get(node_i) is None:
+            graph[node_i] = {'old': 0, 'new': 0, 'neighbors': []}
+        graph[node_i]['new'] = new_rank        
+        neighbors = value_list[1:]
+        for node_j in neighbors:
+            if graph.get(node_j) is None:
+                graph[node_j] = {'old': 0, 'new': 0, 'neighbors': []}
+            graph[node_j]['neighbors'].append(node_i)
+
+residual = (1 - alpha) / float(n) * rank_sum
+for key, value in graph.iteritems():
+    value['new'] = value['new'] * alpha + residual
 
 
 if iter_no < iteration_limit:
-    for key, value in info.iteritems():
+    for node_i, value in graph.iteritems():
         old_rank = value['old']
         new_rank = value['new']
-        outline = 'NodeId:%d:%d\t%f,%f' % (key, iter_no + 1, new_rank, old_rank)
+        outline = 'NodeId:%s:%d\t%f,%f' % (node_i, iter_no + 1, new_rank, old_rank)
         sys.stdout.write(outline)
-        for j in value['neighbors']:
-            sys.stdout.write(',%d' % int(j))
+        for node_j in value['neighbors']:
+            sys.stdout.write(',%s' % node_j)
         sys.stdout.write('\n')
 else:
     new_list = []
-    for key, value in info.iteritems():
-        new_list.append([-value['new'], key])
+    for node, value in graph.iteritems():
+        new_list.append([-value['new'], node])
     new_list.sort()
     for i in range(20):
-        outline = 'FinalRank:%f\t%d\n' % (-new_list[i][0], new_list[i][1])
+        outline = 'FinalRank:%f\t%s\n' % (-new_list[i][0], new_list[i][1])
         sys.stdout.write(outline)
     
