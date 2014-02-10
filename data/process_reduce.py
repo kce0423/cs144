@@ -7,7 +7,7 @@ import sys
 #
 
 alpha = 0.85
-iteration_limit = 12
+iteration_limit = 10
 iter_no = 0
 n = 0 # number of nodes
 graph = {} 
